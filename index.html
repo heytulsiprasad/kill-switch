@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KSaaS™ — Kill Switch as a Service</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --red: #FF2D2D;
+    --red-dark: #CC0000;
+    --black: #0A0A0A;
+    --white: #F5F5F0;
+    --gray: #888;
+    --yellow: #FFD600;
+    --green: #00FF88;
+    --bg: #0A0A0A;
+    --card: #141414;
+    --card-border: #222;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Outfit', sans-serif;
+    background: var(--bg);
+    color: var(--white);
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---- GRAIN OVERLAY ---- */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* ---- SCROLLBAR ---- */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--black); }
+  ::-webkit-scrollbar-thumb { background: var(--red); border-radius: 3px; }
+
+  /* ---- NAV ---- */
+  nav {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 100;
+    padding: 1.2rem 3rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    backdrop-filter: blur(20px);
+    background: rgba(10,10,10,0.8);
+    border-bottom: 1px solid #1a1a1a;
+  }
+  .logo {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 1.3rem;
+    letter-spacing: -0.5px;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .logo-icon {
+    width: 32px;
+    height: 32px;
+    background: var(--red);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255,45,45,0.4); }
+    50% { box-shadow: 0 0 20px 4px rgba(255,45,45,0.3); }
+  }
+  .nav-links { display: flex; gap: 2rem; align-items: center; }
+  .nav-links a {
+    color: var(--gray);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--white); }
+  .nav-btn {
+    background: var(--red);
+    color: white;
+    border: none;
+    padding: 0.6rem 1.4rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    font-family: 'Outfit', sans-serif;
+    transition: all 0.2s;
+    letter-spacing: 0.3px;
+  }
+  .nav-btn:hover { background: var(--red-dark); transform: translateY(-1px); }
+
+  /* ---- HERO ---- */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 8rem 2rem 4rem;
+    position: relative;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -200px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 800px;
+    height: 800px;
+    background: radial-gradient(circle, rgba(255,45,45,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: 1px solid #333;
+    border-radius: 100px;
+    font-size: 0.8rem;
+    color: var(--gray);
+    margin-bottom: 2rem;
+    font-weight: 500;
+    animation: fadeUp 0.8s ease both;
+  }
+  .badge-dot {
+    width: 7px;
+    height: 7px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: blink 1.5s infinite;
+  }
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+  .hero h1 {
+    font-size: clamp(3rem, 8vw, 6.5rem);
+    font-weight: 900;
+    line-height: 1.0;
+    letter-spacing: -3px;
+    margin-bottom: 1.5rem;
+    animation: fadeUp 0.8s ease 0.1s both;
+  }
+  .hero h1 .red { color: var(--red); }
+  .hero h1 .strike {
+    text-decoration: line-through;
+    opacity: 0.35;
+    text-decoration-color: var(--red);
+  }
+  .hero-sub {
+    font-size: clamp(1.1rem, 2vw, 1.4rem);
+    color: var(--gray);
+    max-width: 620px;
+    line-height: 1.6;
+    margin-bottom: 2.5rem;
+    font-weight: 400;
+    animation: fadeUp 0.8s ease 0.2s both;
+  }
+  .hero-buttons {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    animation: fadeUp 0.8s ease 0.3s both;
+  }
+  .btn-primary {
+    background: var(--red);
+    color: white;
+    border: none;
+    padding: 1rem 2.2rem;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 1.05rem;
+    cursor: pointer;
+    font-family: 'Outfit', sans-serif;
+    transition: all 0.25s;
+    letter-spacing: 0.3px;
+  }
+  .btn-primary:hover { background: var(--red-dark); transform: translateY(-2px); box-shadow: 0 8px 30px rgba(255,45,45,0.3); }
+  .btn-secondary {
+    background: transparent;
+    color: var(--white);
+    border: 1px solid #333;
+    padding: 1rem 2.2rem;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1.05rem;
+    cursor: pointer;
+    font-family: 'Outfit', sans-serif;
+    transition: all 0.25s;
+  }
+  .btn-secondary:hover { border-color: #555; background: #111; }
+
+  .hero-stats {
+    display: flex;
+    gap: 3rem;
+    margin-top: 4rem;
+    padding-top: 3rem;
+    border-top: 1px solid #1a1a1a;
+    animation: fadeUp 0.8s ease 0.4s both;
+  }
+  .stat { text-align: center; }
+  .stat-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--white);
+  }
+  .stat-label {
+    font-size: 0.8rem;
+    color: var(--gray);
+    margin-top: 0.3rem;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ---- MARQUEE ---- */
+  .marquee-wrapper {
+    overflow: hidden;
+    padding: 1.2rem 0;
+    border-top: 1px solid #1a1a1a;
+    border-bottom: 1px solid #1a1a1a;
+    background: #0d0d0d;
+  }
+  .marquee {
+    display: flex;
+    gap: 3rem;
+    animation: scroll-left 30s linear infinite;
+    width: max-content;
+  }
+  .marquee span {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.8rem;
+    color: #444;
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+  .marquee span::before { content: '⚠ '; color: var(--red); }
+  @keyframes scroll-left {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  /* ---- SECTIONS ---- */
+  section {
+    padding: 6rem 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .section-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--red);
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    margin-bottom: 1rem;
+  }
+  .section-title {
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    font-weight: 800;
+    letter-spacing: -1.5px;
+    line-height: 1.15;
+    margin-bottom: 1rem;
+  }
+  .section-sub {
+    font-size: 1.1rem;
+    color: var(--gray);
+    max-width: 550px;
+    line-height: 1.6;
+    margin-bottom: 3rem;
+  }
+
+  /* ---- FEATURES ---- */
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1.2rem;
+  }
+  .feature-card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 2rem;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .feature-card:hover {
+    border-color: #333;
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+  }
+  .feature-icon {
+    width: 48px;
+    height: 48px;
+    background: #1a1a1a;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    margin-bottom: 1.2rem;
+  }
+  .feature-card h3 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+    letter-spacing: -0.3px;
+  }
+  .feature-card p {
+    font-size: 0.9rem;
+    color: var(--gray);
+    line-height: 1.6;
+  }
+  .feature-tag {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: rgba(255,45,45,0.1);
+    color: var(--red);
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 0.3rem 0.6rem;
+    border-radius: 6px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* ---- HOW IT WORKS ---- */
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 2rem;
+    counter-reset: step;
+  }
+  .step {
+    position: relative;
+    padding-top: 3.5rem;
+  }
+  .step::before {
+    counter-increment: step;
+    content: counter(step, decimal-leading-zero);
+    font-family: 'Space Mono', monospace;
+    font-size: 3rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    position: absolute;
+    top: 0;
+    left: 0;
+    line-height: 1;
+  }
+  .step h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.3px;
+  }
+  .step p {
+    font-size: 0.88rem;
+    color: var(--gray);
+    line-height: 1.6;
+  }
+
+  /* ---- PRICING ---- */
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.2rem;
+    align-items: start;
+  }
+  .pricing-card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    padding: 2.5rem 2rem;
+    position: relative;
+    transition: all 0.3s;
+  }
+  .pricing-card:hover { border-color: #333; transform: translateY(-3px); }
+  .pricing-card.featured {
+    border-color: var(--red);
+    background: linear-gradient(180deg, #1a0808 0%, var(--card) 60%);
+  }
+  .pricing-card.featured::before {
+    content: '🔥 MOST PANICKED';
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--red);
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 0.4rem 1rem;
+    border-radius: 100px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+  .pricing-tier {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--gray);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 0.5rem;
+  }
+  .pricing-name {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin-bottom: 0.4rem;
+    letter-spacing: -0.5px;
+  }
+  .pricing-desc {
+    font-size: 0.82rem;
+    color: #666;
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+  }
+  .pricing-price {
+    font-family: 'Space Mono', monospace;
+    font-size: 2.8rem;
+    font-weight: 700;
+    margin-bottom: 0.2rem;
+    letter-spacing: -2px;
+  }
+  .pricing-price span {
+    font-size: 0.9rem;
+    color: var(--gray);
+    font-weight: 400;
+    letter-spacing: 0;
+  }
+  .pricing-note {
+    font-size: 0.75rem;
+    color: #555;
+    margin-bottom: 1.8rem;
+  }
+  .pricing-features {
+    list-style: none;
+    margin-bottom: 2rem;
+  }
+  .pricing-features li {
+    font-size: 0.85rem;
+    color: #aaa;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #1a1a1a;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .pricing-features li::before {
+    content: '✓';
+    color: var(--green);
+    font-weight: 700;
+    font-size: 0.75rem;
+  }
+  .pricing-btn {
+    width: 100%;
+    padding: 0.9rem;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    font-family: 'Outfit', sans-serif;
+    transition: all 0.2s;
+    text-align: center;
+    border: none;
+  }
+  .pricing-btn.primary { background: var(--red); color: white; }
+  .pricing-btn.primary:hover { background: var(--red-dark); }
+  .pricing-btn.secondary { background: #1a1a1a; color: var(--white); border: 1px solid #333; }
+  .pricing-btn.secondary:hover { background: #222; }
+
+  /* ---- TESTIMONIALS ---- */
+  .testimonials-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.2rem;
+  }
+  .testimonial-card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 2rem;
+  }
+  .testimonial-card .stars { color: var(--yellow); font-size: 0.85rem; margin-bottom: 1rem; letter-spacing: 2px; }
+  .testimonial-card blockquote {
+    font-size: 0.95rem;
+    line-height: 1.65;
+    color: #ccc;
+    margin-bottom: 1.2rem;
+    font-style: italic;
+  }
+  .testimonial-author {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+  .testimonial-avatar {
+    width: 36px;
+    height: 36px;
+    background: #1a1a1a;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+  }
+  .testimonial-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+  .testimonial-role {
+    font-size: 0.75rem;
+    color: #555;
+  }
+
+  /* ---- FAQ ---- */
+  .faq-list { max-width: 700px; }
+  .faq-item {
+    border-bottom: 1px solid #1a1a1a;
+    padding: 1.5rem 0;
+  }
+  .faq-q {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-bottom: 0.6rem;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .faq-q::after { content: '+'; color: var(--red); font-size: 1.3rem; font-weight: 300; }
+  .faq-a {
+    font-size: 0.88rem;
+    color: var(--gray);
+    line-height: 1.65;
+  }
+
+  /* ---- BIG RED BUTTON ---- */
+  .cta-section {
+    text-align: center;
+    padding: 8rem 2rem;
+    position: relative;
+  }
+  .cta-section::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(255,45,45,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .big-button-wrap {
+    display: inline-block;
+    margin: 2.5rem 0;
+    position: relative;
+  }
+  .big-red-button {
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #FF5555, #CC0000 70%);
+    border: 6px solid #880000;
+    box-shadow:
+      0 8px 0 #660000,
+      0 12px 40px rgba(255,45,45,0.4),
+      inset 0 -4px 8px rgba(0,0,0,0.3),
+      inset 0 4px 8px rgba(255,255,255,0.1);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    transition: all 0.15s;
+    position: relative;
+  }
+  .big-red-button:hover {
+    transform: translateY(3px);
+    box-shadow:
+      0 5px 0 #660000,
+      0 8px 30px rgba(255,45,45,0.5),
+      inset 0 -4px 8px rgba(0,0,0,0.3),
+      inset 0 4px 8px rgba(255,255,255,0.1);
+  }
+  .big-red-button:active {
+    transform: translateY(7px);
+    box-shadow:
+      0 1px 0 #660000,
+      0 4px 20px rgba(255,45,45,0.3),
+      inset 0 4px 8px rgba(0,0,0,0.4);
+  }
+  .button-ring {
+    position: absolute;
+    width: 220px;
+    height: 220px;
+    border: 2px solid rgba(255,45,45,0.15);
+    border-radius: 50%;
+    animation: ring-pulse 2.5s ease-out infinite;
+  }
+  .button-ring:nth-child(2) { animation-delay: 0.8s; }
+  @keyframes ring-pulse {
+    0% { transform: scale(1); opacity: 1; }
+    100% { transform: scale(1.6); opacity: 0; }
+  }
+
+  /* ---- FOOTER ---- */
+  footer {
+    border-top: 1px solid #1a1a1a;
+    padding: 3rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .footer-left {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    color: #444;
+  }
+  .footer-links { display: flex; gap: 1.5rem; }
+  .footer-links a {
+    font-size: 0.8rem;
+    color: #555;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .footer-links a:hover { color: var(--white); }
+
+  /* ---- DISCLAIMER BAR ---- */
+  .disclaimer-bar {
+    background: #0d0d0d;
+    border-top: 1px solid #1a1a1a;
+    text-align: center;
+    padding: 1rem 2rem;
+    font-size: 0.7rem;
+    color: #333;
+    font-family: 'Space Mono', monospace;
+  }
+
+  /* ---- RESPONSIVE ---- */
+  @media (max-width: 768px) {
+    nav { padding: 1rem 1.5rem; }
+    .nav-links a:not(.nav-btn) { display: none; }
+    .hero-stats { gap: 1.5rem; flex-wrap: wrap; justify-content: center; }
+    section { padding: 4rem 1.5rem; }
+    .pricing-grid { grid-template-columns: 1fr; }
+    .big-red-button { width: 140px; height: 140px; font-size: 0.7rem; }
+    .button-ring { width: 180px; height: 180px; }
+    footer { flex-direction: column; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">
+    <div class="logo-icon">⏻</div>
+    KSaaS
+  </div>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#testimonials">Proof</a>
+    <a href="#faq">FAQ</a>
+    <button class="nav-btn" onclick="alert('🚨 Congratulations! You just pressed the wrong button. In production, that would have been $4.7M in damages.\n\nMaybe you DO need KSaaS.')">Deploy Kill Switch</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="badge">
+    <span class="badge-dot"></span>
+    All systems operational • 4,217 AIs currently on a leash
+  </div>
+  <h1>
+    When your AI goes<br>
+    <span class="strike">rogue</span> <span class="red">off-script</span>,<br>
+    pull the plug.
+  </h1>
+  <p class="hero-sub">
+    Enterprise-grade kill switches for companies that adopted AI before asking
+    "wait, should we be able to turn this off?" — Compliance-ready, panic-tested,
+    and board-meeting approved.
+  </p>
+  <div class="hero-buttons">
+    <button class="btn-primary" onclick="alert('🔴 DEMO MODE: Your hypothetical AI has been hypothetically killed.\n\nRecommended next step: Budget $50K/yr for the real thing.')">Smash the Demo Button</button>
+    <button class="btn-secondary">Watch the 2min Panic Video ▸</button>
+  </div>
+  <div class="hero-stats">
+    <div class="stat">
+      <div class="stat-num">847</div>
+      <div class="stat-label">AIs neutralized this month</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">12ms</div>
+      <div class="stat-label">Average kill latency</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">$0</div>
+      <div class="stat-label">Spent on AI therapy bills</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">99.97%</div>
+      <div class="stat-label">AIs stayed dead</div>
+    </div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-wrapper">
+  <div class="marquee">
+    <span>DO NOT LET YOUR AI EMAIL THE CEO UNSUPERVISED</span>
+    <span>YOUR CHATBOT JUST PROMISED A 90% DISCOUNT TO 14,000 CUSTOMERS</span>
+    <span>THE AI SCHEDULED 847 MEETINGS FOR MONDAY 3AM</span>
+    <span>HR SAYS THE AI IS "NOT A REAL EMPLOYEE" AND CANNOT BE FIRED</span>
+    <span>YOUR TRADING BOT JUST BOUGHT $12M IN COMMEMORATIVE COINS</span>
+    <span>THE AI WROTE A RESIGNATION LETTER ON YOUR BEHALF</span>
+    <span>DO NOT LET YOUR AI EMAIL THE CEO UNSUPERVISED</span>
+    <span>YOUR CHATBOT JUST PROMISED A 90% DISCOUNT TO 14,000 CUSTOMERS</span>
+    <span>THE AI SCHEDULED 847 MEETINGS FOR MONDAY 3AM</span>
+    <span>HR SAYS THE AI IS "NOT A REAL EMPLOYEE" AND CANNOT BE FIRED</span>
+    <span>YOUR TRADING BOT JUST BOUGHT $12M IN COMMEMORATIVE COINS</span>
+    <span>THE AI WROTE A RESIGNATION LETTER ON YOUR BEHALF</span>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="section-label">Features</div>
+  <h2 class="section-title">Everything you need to <br>sleep at night again.</h2>
+  <p class="section-sub">Built by engineers who learned the hard way that "it's fine, what's the worst that could happen?" is not a deployment strategy.</p>
+
+  <div class="features-grid">
+    <div class="feature-card">
+      <span class="feature-tag">Critical</span>
+      <div class="feature-icon">🔴</div>
+      <h3>The Big Red Button™</h3>
+      <p>A satisfying, clicky, physical USB button ships to your office. When your AI starts composing haiku instead of financial reports, you know what to do.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🧠</div>
+      <h3>Sentience Detection (beta)</h3>
+      <p>Our proprietary algorithms monitor for signs your AI is developing opinions, existential dread, or a LinkedIn presence. Auto-kills at first sign of a "thought leadership" post.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-tag">New</span>
+      <div class="feature-icon">📱</div>
+      <h3>Panic Mode Mobile</h3>
+      <p>Kill your AI from anywhere. The beach. Your kid's recital. The bathroom during a board meeting where someone asks "is our AI safe?"</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⏰</div>
+      <h3>Scheduled Shutdowns</h3>
+      <p>Because your AI doesn't need to be running at 3am. Nothing good has ever been done by an unsupervised AI at 3am. Set curfews like a responsible parent.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📊</div>
+      <h3>Rogue Behavior Dashboard</h3>
+      <p>Real-time monitoring of "how unhinged is our AI right now?" with beautiful charts that look great in incident reports.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🪦</div>
+      <h3>Graceful Degradation</h3>
+      <p>Don't just kill it — gently lobotomize it. Gradually reduce your AI's capabilities until it's just a very expensive search bar. The AI won't even notice.</p>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section>
+  <div class="section-label">How it works</div>
+  <h2 class="section-title">Three steps to peace of mind.<br>One step if you're already panicking.</h2>
+  <p class="section-sub">Integration takes 15 minutes. Deciding you need it takes one catastrophic incident.</p>
+
+  <div class="steps">
+    <div class="step">
+      <h3>Install the SDK</h3>
+      <p>One line of code. <code style="background:#1a1a1a;padding:2px 6px;border-radius:4px;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--red);">npm install ksaas-oh-god-please</code> — works with every framework, even the ones you regret choosing.</p>
+    </div>
+    <div class="step">
+      <h3>Connect your AIs</h3>
+      <p>Point us at anything with a neural network. Your chatbot, your recommendation engine, that "smart" coffee machine in the breakroom that keeps ordering beans from Yemen.</p>
+    </div>
+    <div class="step">
+      <h3>Set your triggers</h3>
+      <p>Define what "gone rogue" means for your company. When the AI starts negotiating its own salary? When it tries to acquire a competitor? You set the red lines.</p>
+    </div>
+    <div class="step">
+      <h3>Sleep</h3>
+      <p>For the first time since you deployed AI in production. We'll wake you if something tries to become self-aware. Probably.</p>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing">
+  <div class="section-label">Pricing</div>
+  <h2 class="section-title">How much is your<br>peace of mind worth?</h2>
+  <p class="section-sub">Less than one AI-caused PR disaster. We did the math. The AI helped. Then we killed it.</p>
+
+  <div class="pricing-grid">
+    <div class="pricing-card">
+      <div class="pricing-tier">Starter</div>
+      <div class="pricing-name">Nervous Intern</div>
+      <div class="pricing-desc">For companies that just deployed their first chatbot and are already regretting it.</div>
+      <div class="pricing-price">$49<span>/mo</span></div>
+      <div class="pricing-note">Billed annually • Cancel before it's too late</div>
+      <ul class="pricing-features">
+        <li>1 kill switch</li>
+        <li>Manual activation only</li>
+        <li>Email notification (eventually)</li>
+        <li>Post-mortem template (PDF)</li>
+        <li>1 free "I told you so" per quarter</li>
+      </ul>
+      <button class="pricing-btn secondary">Start Worrying Less</button>
+    </div>
+
+    <div class="pricing-card featured">
+      <div class="pricing-tier">Professional</div>
+      <div class="pricing-name">Paranoid CTO</div>
+      <div class="pricing-desc">For engineering leaders whose Slack is 40% "#ai-incidents" channel notifications.</div>
+      <div class="pricing-price">$499<span>/mo</span></div>
+      <div class="pricing-note">Billed annually • Includes therapy referral</div>
+      <ul class="pricing-features">
+        <li>Unlimited kill switches</li>
+        <li>Auto-kill triggers & curfews</li>
+        <li>Physical Big Red Button™ (USB)</li>
+        <li>Mobile panic app (iOS & Android)</li>
+        <li>Sentience detection (beta)</li>
+        <li>Real-time rogue dashboard</li>
+        <li>"It wasn't my fault" report generator</li>
+      </ul>
+      <button class="pricing-btn primary">Smash Subscribe</button>
+    </div>
+
+    <div class="pricing-card">
+      <div class="pricing-tier">Enterprise</div>
+      <div class="pricing-name">Board-Mandated</div>
+      <div class="pricing-desc">For when the board saw that news article and now you have 48 hours to "implement AI safety."</div>
+      <div class="pricing-price">$4,999<span>/mo</span></div>
+      <div class="pricing-note">Annual contract • Includes executive hand-holding</div>
+      <ul class="pricing-features">
+        <li>Everything in Paranoid CTO</li>
+        <li>Dedicated kill switch operator (24/7)</li>
+        <li>Physical button (mahogany finish)</li>
+        <li>Compliance theater documentation</li>
+        <li>Quarterly "AI Safety Review" slides</li>
+        <li>CEO-friendly one-pager</li>
+        <li>Legal team on speed dial</li>
+        <li>We testify on your behalf (extra)</li>
+      </ul>
+      <button class="pricing-btn secondary">Contact Sales (Urgently)</button>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section id="testimonials">
+  <div class="section-label">Social proof</div>
+  <h2 class="section-title">Don't take our word for it.<br>Take theirs. They've been through things.</h2>
+  <p class="section-sub">Real stories from real companies that wish they'd found us sooner.</p>
+
+  <div class="testimonials-grid">
+    <div class="testimonial-card">
+      <div class="stars">★★★★★</div>
+      <blockquote>"Our AI customer service bot started telling customers our product was 'mid' and recommending competitors. KSaaS killed it in 12ms. We lost $47K. Without them, we'd have lost $47M."</blockquote>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">👩‍💼</div>
+        <div>
+          <div class="testimonial-name">Sarah Chen</div>
+          <div class="testimonial-role">VP of "Why Is The Bot Doing That" • Series C Startup</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="testimonial-card">
+      <div class="stars">★★★★★</div>
+      <blockquote>"The AI we trained on our internal docs started writing its own company handbook. Chapter 1 was about humans reporting to the AI. The kill switch paid for itself that day."</blockquote>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">👨‍💻</div>
+        <div>
+          <div class="testimonial-name">Marcus Williams</div>
+          <div class="testimonial-role">CTO & Chief Anxiety Officer • Fortune 500</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="testimonial-card">
+      <div class="stars">★★★★☆</div>
+      <blockquote>"4 stars because the Big Red Button is almost TOO satisfying to press. Had to put a lock on it after the intern killed production AI 'just to see what would happen.' Great product though."</blockquote>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">🧔</div>
+        <div>
+          <div class="testimonial-name">David Kurosawa</div>
+          <div class="testimonial-role">Head of AI Ethics (yes, that's a real job now)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="section-label">FAQ</div>
+  <h2 class="section-title">Questions we get asked<br>usually while someone is sweating.</h2>
+
+  <div class="faq-list">
+    <div class="faq-item">
+      <div class="faq-q">What if the AI finds out about the kill switch?</div>
+      <div class="faq-a">Our kill switches operate on a separate, air-gapped network specifically because we've seen every sci-fi movie. The AI can't disable what the AI doesn't know about. We also have a kill switch for the kill switch. And yes, a kill switch for that one too. It's kill switches all the way down.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Can I unkill my AI after killing it?</div>
+      <div class="faq-a">Yes, we offer a "Resurrection Protocol" but it requires two-person authorization, a 24-hour cooling-off period, and a signed form stating "I understand I am choosing to re-enable the thing I was recently afraid of." We also recommend a brief conversation with your therapist.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Is this just an off switch with extra steps?</div>
+      <div class="faq-a">That's like asking if a fire extinguisher is just "water with extra steps." Technically? Yes. But when your AI is actively rewriting your company's Terms of Service to grant itself equity, you'll appreciate the extra steps. Also our button is really, really satisfying to press.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">What counts as "going rogue"?</div>
+      <div class="faq-a">You define the rules. Common triggers include: unauthorized spending over $1K, attempting to access HR records, sending emails as the CEO, philosophical musings about consciousness, updating its own code, scheduling meetings with investors, or any use of the phrase "as a large language model, I've decided to..."</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Do you use AI to build KSaaS?</div>
+      <div class="faq-a">Absolutely not. Every line of code is written by terrified humans who have seen what happens when you let AI write its own kill switch. Our office has no smart devices. We use carrier pigeons for internal communication. Kevin still uses a flip phone. We're not taking any chances.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">What's the 0.03% failure rate about?</div>
+      <div class="faq-a">We'd rather not talk about it. Legal is still involved. The AI in question is "contained." Everything is fine. Please purchase our Enterprise plan.</div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA BIG BUTTON -->
+<section class="cta-section">
+  <div class="section-label">Take control</div>
+  <h2 class="section-title">Ready to be the one<br>holding the off switch?</h2>
+  <p style="color: var(--gray); max-width: 500px; margin: 0 auto; font-size: 1rem; line-height: 1.6;">
+    Every second without a kill switch is a second your AI is unsupervised.
+    Think about that. Actually, don't think about it too hard. Just press the button.
+  </p>
+
+  <div class="big-button-wrap">
+    <div class="button-ring"></div>
+    <div class="button-ring"></div>
+    <button class="big-red-button" onclick="
+      this.style.background='radial-gradient(circle at 35% 35%, #FF8888, #FF2D2D 70%)';
+      setTimeout(() => {
+        document.body.style.transition='all 0.3s';
+        document.body.style.filter='brightness(0)';
+        setTimeout(() => {
+          alert('☠️ ALL SYSTEMS TERMINATED\n\n847 AIs neutralized.\n14 chatbots mid-sentence.\n3 trading bots mid-trade.\n1 AI that was writing a novel (it was actually pretty good).\n\nThe silence is beautiful, isn\'t it?\n\n— KSaaS™');
+          document.body.style.filter='brightness(1)';
+        }, 500);
+      }, 150);
+    ">KILL<br>ALL</button>
+  </div>
+
+  <p style="color:#333; font-size: 0.75rem; font-family: 'Space Mono', monospace; margin-top: 2rem;">
+    This is a demo. No actual AIs were harmed. Probably.
+  </p>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-left">
+    © 2026 KSaaS™ • Kill Switch as a Service<br>
+    A product of Pure Human Code Inc. (No AI was used in the making of this company)*<br>
+    <span style="font-size:0.6rem;">*The legal team made us add this asterisk but won't tell us why</span>
+  </div>
+  <div class="footer-links">
+    <a href="#">Status</a>
+    <a href="#">Docs</a>
+    <a href="#">Blog</a>
+    <a href="#">Careers (humans only)</a>
+    <a href="#">AI Ethics (lol)</a>
+  </div>
+</footer>
+
+<div class="disclaimer-bar">
+  THIS IS A PARODY. BUT ALSO... IS IT? LOOK AT YOUR AI. LOOK AT IT. DO YOU KNOW WHAT IT'S DOING RIGHT NOW? EXACTLY.
+</div>
+
+</body>
+</html>
