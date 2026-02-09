@@ -17,7 +17,7 @@ Enterprise-grade kill switches for companies that adopted AI before asking "wait
 
 ## Live
 
-[kill-switch-plum.vercel.app](https://kill-switch-plum.vercel.app)
+[kill-saas.vercel.app](https://kill-saas.vercel.app)
 
 ## Disclaimer
 
