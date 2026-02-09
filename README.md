@@ -4,7 +4,7 @@
 
 Enterprise-grade kill switches for companies that adopted AI before asking "wait, should we be able to turn this off?"
 
-![KSaaS Screenshot](screenshot.png)
+![KSaaS Screenshot](preview.png)
 
 ## Features
 
